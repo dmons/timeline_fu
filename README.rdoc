@@ -75,9 +75,11 @@ It will receive the following parameters in #create!
 The generated model stores most of its info as polymorphic relationships.
 
   class TimelineEvent < ActiveRecord::Base
+    belongs_to :project
     belongs_to :actor,              :polymorphic => true
     belongs_to :subject,            :polymorphic => true
     belongs_to :secondary_subject,  :polymorphic => true
+    belongs_to :extra_scope,        :polymorphic => true
   end
 
 == How you actually get your timeline
