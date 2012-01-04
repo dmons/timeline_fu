@@ -17,14 +17,14 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string :name
   end
   
-  create_table :accounts do |t|
+  create_table :projects do |t|
     t.string :name, :default => ""
     t.string :description, :default => ""
     t.references :group
   end
 
   create_table :people do |t|
-    t.references :account
+    t.references :project
     t.string  :email,    :default => ''
     t.string  :password, :default => ''
   end
@@ -43,7 +43,7 @@ end
 class Group < ActiveRecord::Base
 end
 
-class Account < ActiveRecord::Base
+class Project < ActiveRecord::Base
   belongs_to :group
   
   has_many :people
@@ -53,11 +53,11 @@ end
 class Person < ActiveRecord::Base
   attr_accessor :new_watcher, :fire
 
-  belongs_to :account
+  belongs_to :project
   
   fires :person_created,  :on     => :create,
-                          :extra_scope  => Proc.new { |person| person.account.group },
-                          :if     => lambda { |person| person.account and person.account.group }
+                          :extra_scope  => Proc.new { |person| person.project.group },
+                          :if     => lambda { |person| person.project and person.project.group }
 
   fires :follow_created,  :on     => :update, 
                           :actor  => lambda { |person| person.new_watcher }, 
@@ -76,7 +76,7 @@ class List < ActiveRecord::Base
   belongs_to :author, :class_name => "Person"
   has_many :comments
   
-  fires :list_created_or_updated,  :account => Proc.new { |list| list.author.account_id },
+  fires :list_created_or_updated,  :project => Proc.new { |list| list.author.project_id },
                                    :actor  => :author, 
                                    :on     => [:create, :update]
 end
@@ -85,11 +85,11 @@ class Comment < ActiveRecord::Base
   belongs_to :list
   belongs_to :author, :class_name => "Person"
 
-  fires :comment_created, :account => Proc.new { |comment| comment.list.author.account_id },
+  fires :comment_created, :project => Proc.new { |comment| comment.list.author.project_id },
                           :actor   => :author,
                           :on      => :create,
                           :secondary_subject => :list
-  fires :comment_deleted, :account => Proc.new { |comment| comment.list.author.account_id },
+  fires :comment_deleted, :project => Proc.new { |comment| comment.list.author.project_id },
                           :actor   => :author,
                           :on      => :destroy,
                           :subject => :list,
@@ -110,12 +110,12 @@ class Test::Unit::TestCase
       Group.create!(hash_for_group(opts))
     end
   
-    def hash_for_account(opts = {})
+    def hash_for_project(opts = {})
       {:name => "fantasy inc.", :description => "rails shop"}.merge(opts)
     end
 
-    def create_account(opts = {})
-      Account.create!(hash_for_account(opts))
+    def create_project(opts = {})
+      Project.create!(hash_for_project(opts))
     end
 
     def hash_for_list(opts = {})
